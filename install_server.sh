@@ -98,8 +98,8 @@ sign_cert(){
     fi
   fi
   sed -i 's^RANDFILE		= $ENV::HOME/.rnd^# RANDFILE		= $ENV::HOME/.rnd^' /etc/ssl/openssl.cnf
-  sed -i "s/O=Yashmak/O=$uuid/" ./demoCA/conf/ca.conf
-  sed -i "s/O=Yashmak/O=$uuid/" ./server/conf/server.conf
+  sed -i "s/O=Pangolin/O=$uuid/" ./demoCA/conf/ca.conf
+  sed -i "s/O=Pangolin/O=$uuid/" ./server/conf/server.conf
   openssl ecparam -genkey -name prime256v1 -out ./demoCA/private/cakey.pem
   openssl ecparam -genkey -name prime256v1 -out ./server/private/server.key
   openssl req -new -x509 -key ./demoCA/private/cakey.pem -out ./demoCA/cacert.pem -days 7300 -config ./demoCA/conf/ca.conf
