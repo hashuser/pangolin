@@ -13,7 +13,7 @@ create_service(){
   User=root
   Group=root
   WorkingDirectory=$(cd "$(dirname "$0")";pwd)
-  ExecStart=/usr/bin/python$python_main_version $(cd "$(dirname "$0")";pwd)/server.py
+  ExecStart=/usr/bin/python$python_main_version $(cd "$(dirname "$0")";pwd)/client.py
   LimitNOFILE=1048575
   Restart=always
   TasksMax=infinity
@@ -63,60 +63,15 @@ system_config(){
   echo "net.ipv4.tcp_mem = 786432 1048576 26777216" >> /etc/sysctl.conf
   sysctl -p
   apt-get install resolvconf -y
-  echo "dns-nameservers 1.1.1.1" >> /etc/network/interfaces
+  echo "dns-nameservers 114.114.114.114" >> /etc/network/interfaces
   /etc/init.d/networking restart
   /etc/init.d/resolvconf restart
 }
 
-sign_cert(){
-  uuid=$(cat /proc/sys/kernel/random/uuid)
-  uuid=${uuid:0:7}
-  apt-get install openssl -y
-  mkdir -p ./demoCA/{private,newcerts,conf}
-  mkdir -p ./server/{private,request,conf}
-  touch ./demoCA/index.txt
-  touch ./demoCA/index.txt.attr
-  touch ./demoCA/serial
-  echo 01 > ./demoCA/serial
-  wget -O ./demoCA/conf/ca.conf https://raw.githubusercontent.com/hashuser/pangolin/master/ca.conf
-  wget -O ./server/conf/server.conf https://raw.githubusercontent.com/hashuser/pangolin/master/server.conf
-  local_ipv4=`curl -4 ip.sb`
-  if [ $? -ne 0 ]; then
-    local_ipv6=`curl -6 ip.sb`
-    if [ $? -ne 0 ]; then
-      exit 1
-    else
-      echo "IP.1 = $local_ipv6" >> ./server/conf/server.conf
-      sed -i "s/CN=GlobalSign/CN=$local_ipv6/" ./server/conf/server.conf
-    fi
-  else
-    echo "IP.1 = $local_ipv4" >> ./server/conf/server.conf
-    sed -i "s/CN=GlobalSign/CN=$local_ipv4/" ./server/conf/server.conf
-    local_ipv6=`curl -6 ip.sb`
-    if [ $? -eq 0 ]; then
-      echo "IP.2 = $local_ipv6" >> ./server/conf/server.conf
-    fi
-  fi
-  sed -i 's^RANDFILE		= $ENV::HOME/.rnd^# RANDFILE		= $ENV::HOME/.rnd^' /etc/ssl/openssl.cnf
-  sed -i "s/O=Yashmak/O=$uuid/" ./demoCA/conf/ca.conf
-  sed -i "s/O=Yashmak/O=$uuid/" ./server/conf/server.conf
-  openssl ecparam -genkey -name prime256v1 -out ./demoCA/private/cakey.pem
-  openssl ecparam -genkey -name prime256v1 -out ./server/private/server.key
-  openssl req -new -x509 -key ./demoCA/private/cakey.pem -out ./demoCA/cacert.pem -days 7300 -config ./demoCA/conf/ca.conf
-  openssl req -new -key ./server/private/server.key -out ./server/request/server.csr -config ./server/conf/server.conf
-  openssl ca -batch -in ./server/request/server.csr -out ./server/server.crt -days 3650 -extensions req_ext -extfile ./server/conf/server.conf
-  mkdir ./Certs
-  mv ./demoCA/cacert.pem ./Certs
-  mv ./server/private/server.key ./Certs
-  mv ./server/server.crt ./Certs
-  rm -rf ./demoCA
-  rm -rf ./server
-}
-
 automatic_reboot(){
   apt-get install cron -y
-  echo "0 16 * * * root systemctl restart Pangolin" >> /etc/crontab
-  echo "0 16 * * 7 root reboot" >> /etc/crontab
+  echo "0 8 * * * root systemctl restart Pangolin" >> /etc/crontab
+  echo "0 8 * * 7 root reboot" >> /etc/crontab
   service cron restart
 }
 
@@ -134,8 +89,7 @@ install_Pangolin(){
   python$python_main_version -m pip install uvloop
   python$python_main_version -m pip install aioprocessing
   python$python_main_version -m pip install psutil
-  wget -O server.py https://raw.githubusercontent.com/hashuser/pangolin/master/server.py
-  wget -O geoip.json https://raw.githubusercontent.com/hashuser/pangolin/master/geoip.json
+  wget -O server.py https://raw.githubusercontent.com/hashuser/pangolin/master/client.py
 }
 
 main(){
@@ -143,7 +97,6 @@ main(){
   create_service
   install_service
   system_config
-  sign_cert
   automatic_reboot
   create_shortcut
 }
