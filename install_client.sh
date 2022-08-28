@@ -26,7 +26,7 @@ EOF
 install_service(){
   echo "root  soft nofile 1048575" >> /etc/security/limits.conf
   echo "root  hard nofile 1048575" >> /etc/security/limits.conf
-  mv $(cd "$(dirname "$0")";pwd)/Yashmak.service /etc/systemd/system/
+  mv $(cd "$(dirname "$0")";pwd)/Pangolin.service /etc/systemd/system/
   systemctl enable Pangolin.service
   systemctl start Pangolin.service
 }
