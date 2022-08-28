@@ -128,7 +128,6 @@ automatic_reboot(){
 install_Pangolin(){
   mkdir $(cd "$(dirname "$0")";pwd)/Pangolin
   cd $(cd "$(dirname "$0")";pwd)/Pangolin
-  mkdir ./Cache
   apt-get update
   dpkg-reconfigure libc6
   DEBIAN_FRONTEND=noninteractive dpkg --configure libssl1.1 
