@@ -2,10 +2,10 @@
 python_main_version="3.10"
 
 create_service(){
-  touch $(cd "$(dirname "$0")";pwd)/Yashmak.service
-  cat>$(cd "$(dirname "$0")";pwd)/Yashmak.service<<EOF
+  touch $(cd "$(dirname "$0")";pwd)/Pangolin.service
+  cat>$(cd "$(dirname "$0")";pwd)/Pangolin.service<<EOF
   [Unit]
-  Description=Yashmak Network Service
+  Description=Pangolin Network Service
   After=rc-local.service
 
   [Service]
@@ -27,14 +27,14 @@ install_service(){
   echo "root  soft nofile 1048575" >> /etc/security/limits.conf
   echo "root  hard nofile 1048575" >> /etc/security/limits.conf
   mv $(cd "$(dirname "$0")";pwd)/Yashmak.service /etc/systemd/system/
-  systemctl enable Yashmak.service
-  systemctl start Yashmak.service
+  systemctl enable Pangolin.service
+  systemctl start Pangolin.service
 }
 
 create_shortcut(){
-  echo "alias Yashmak_config='vim $(cd "$(dirname "$0")";pwd)/config.json'">>~/.bashrc
-  echo "alias Yashmak_blacklist='vim $(cd "$(dirname "$0")";pwd)/blacklist.json'">>~/.bashrc
-  echo "alias Yashmak_uninstall='rm -r $(cd "$(dirname "$0")";pwd)'">>~/.bashrc
+  echo "alias Pangolin_config='vim $(cd "$(dirname "$0")";pwd)/config.json'">>~/.bashrc
+  echo "alias Pangolin_blacklist='vim $(cd "$(dirname "$0")";pwd)/blacklist.json'">>~/.bashrc
+  echo "alias Pangolin_uninstall='rm -r $(cd "$(dirname "$0")";pwd)'">>~/.bashrc
   reboot
 }
 
@@ -78,8 +78,8 @@ sign_cert(){
   touch ./demoCA/index.txt.attr
   touch ./demoCA/serial
   echo 01 > ./demoCA/serial
-  wget -O ./demoCA/conf/ca.conf https://raw.githubusercontent.com/hashuser/yashmak/master/ca.conf
-  wget -O ./server/conf/server.conf https://raw.githubusercontent.com/hashuser/yashmak/master/server.conf
+  wget -O ./demoCA/conf/ca.conf https://raw.githubusercontent.com/hashuser/pangolin/master/ca.conf
+  wget -O ./server/conf/server.conf https://raw.githubusercontent.com/hashuser/pangolin/master/server.conf
   local_ipv4=`curl -4 ip.sb`
   if [ $? -ne 0 ]; then
     local_ipv6=`curl -6 ip.sb`
@@ -115,14 +115,14 @@ sign_cert(){
 
 automatic_reboot(){
   apt-get install cron -y
-  echo "0 16 * * * root systemctl restart Yashmak" >> /etc/crontab
+  echo "0 16 * * * root systemctl restart Pangolin" >> /etc/crontab
   echo "0 16 * * 7 root reboot" >> /etc/crontab
   service cron restart
 }
 
-install_Yashmak(){
-  mkdir $(cd "$(dirname "$0")";pwd)/Yashmak
-  cd $(cd "$(dirname "$0")";pwd)/Yashmak
+install_Pangolin(){
+  mkdir $(cd "$(dirname "$0")";pwd)/Pangolin
+  cd $(cd "$(dirname "$0")";pwd)/Pangolin
   mkdir ./Cache
   apt-get update
   dpkg-reconfigure libc6
@@ -131,18 +131,15 @@ install_Yashmak(){
   apt-get install python$python_main_version -y
   apt-get install python3-pip -y
   apt-get install python3-distutils -y
-  python$python_main_version -m pip install dnspython
   python$python_main_version -m pip install uvloop
-  python$python_main_version -m pip install ntplib
+  python$python_main_version -m pip install aioprocessing
   python$python_main_version -m pip install psutil
-  wget -O server.py https://raw.githubusercontent.com/hashuser/yashmak/master/server.py
-  wget -O geoip.json https://raw.githubusercontent.com/hashuser/yashmak/master/geoip.json
-  wget -O blacklist.json https://raw.githubusercontent.com/hashuser/yashmak/master/blacklist.json
-  wget -O hostlist.json https://raw.githubusercontent.com/hashuser/yashmak/master/hostlist.json
+  wget -O server.py https://raw.githubusercontent.com/hashuser/pangolin/master/server.py
+  wget -O geoip.json https://raw.githubusercontent.com/hashuser/pangolin/master/geoip.json
 }
 
 main(){
-  install_Yashmak
+  install_Pangolin
   create_service
   install_service
   system_config
