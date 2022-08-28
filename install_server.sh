@@ -80,21 +80,26 @@ sign_cert(){
   echo 01 > ./demoCA/serial
   wget -O ./demoCA/conf/ca.conf https://raw.githubusercontent.com/hashuser/pangolin/master/ca.conf
   wget -O ./server/conf/server.conf https://raw.githubusercontent.com/hashuser/pangolin/master/server.conf
-  local_ipv4=`curl -4 ip.sb`
-  if [ $? -ne 0 ]; then
-    local_ipv6=`curl -6 ip.sb`
-    if [ $? -ne 0 ]; then
-      exit 1
-    else
-      echo "IP.1 = $local_ipv6" >> ./server/conf/server.conf
-      sed -i "s/CN=GlobalSign/CN=$local_ipv6/" ./server/conf/server.conf
-    fi
+  if [ -n "${1}" ]; then
+    echo "IP.1 = ${1}" >> ./server/conf/server.conf
+    sed -i "s/CN=GlobalSign/CN=${1}/" ./server/conf/server.conf
   else
-    echo "IP.1 = $local_ipv4" >> ./server/conf/server.conf
-    sed -i "s/CN=GlobalSign/CN=$local_ipv4/" ./server/conf/server.conf
-    local_ipv6=`curl -6 ip.sb`
-    if [ $? -eq 0 ]; then
-      echo "IP.2 = $local_ipv6" >> ./server/conf/server.conf
+    local_ipv4=`curl -4 ip.sb`
+    if [ $? -ne 0 ]; then
+      local_ipv6=`curl -6 ip.sb`
+      if [ $? -ne 0 ]; then
+        exit 1
+      else
+        echo "IP.1 = $local_ipv6" >> ./server/conf/server.conf
+        sed -i "s/CN=GlobalSign/CN=$local_ipv6/" ./server/conf/server.conf
+      fi
+    else
+      echo "IP.1 = $local_ipv4" >> ./server/conf/server.conf
+      sed -i "s/CN=GlobalSign/CN=$local_ipv4/" ./server/conf/server.conf
+      local_ipv6=`curl -6 ip.sb`
+      if [ $? -eq 0 ]; then
+        echo "IP.2 = $local_ipv6" >> ./server/conf/server.conf
+      fi
     fi
   fi
   sed -i 's^RANDFILE		= $ENV::HOME/.rnd^# RANDFILE		= $ENV::HOME/.rnd^' /etc/ssl/openssl.cnf
@@ -143,9 +148,9 @@ main(){
   create_service
   install_service
   system_config
-  sign_cert
+  sign_cert ${1}
   automatic_reboot
   create_shortcut
 }
 
-main
+main ${1}
