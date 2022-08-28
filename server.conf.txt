@@ -1,0 +1,31 @@
+[ req ]
+prompt              = no
+default_bits        = 256
+default_keyfile     = r.pem
+default_md          = sha256
+string_mask         = nombstr
+distinguished_name  = req_distinguished_name
+req_extensions      = req_ext
+x509_extensions     = x509_ext
+
+[ req_distinguished_name ]
+C=CN
+ST=Shanghai
+L=Shanghai
+O=Yashmak
+OU=GlobalSign Root CA - R3
+CN=GlobalSign
+
+[ x509_ext ]
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid,issuer
+basicConstraints       = CA:FALSE
+keyUsage               = digitalSignature, keyEncipherment
+
+[ req_ext ]
+subjectKeyIdentifier = hash
+basicConstraints     = CA:FALSE
+keyUsage             = digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[ alt_names ]
